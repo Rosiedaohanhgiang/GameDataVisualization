@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Data Doctor: Deep Learning Edition</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Icons & Fonts -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;600;800&family=Merriweather:ital,wght@0,300;0,700;1,300&display=swap" rel="stylesheet">
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f1f5f9; }
+        .font-serif { font-family: 'Merriweather', serif; }
+        .font-code { font-family: 'JetBrains Mono', monospace; }
+        
+        /* Smooth Transitions */
+        .stage { display: none; opacity: 0; transform: translateY(20px); transition: all 0.6s ease-out; }
+        .stage.active { display: block; opacity: 1; transform: translateY(0); }
+
+        /* Card Styles */
+        .chart-card {
+            background: #1e293b; border: 2px solid #334155; border-radius: 12px; padding: 1.5rem;
+            cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative; overflow: hidden;
+        }
+        .chart-card:hover { border-color: #60a5fa; transform: translateY(-5px); box-shadow: 0 10px 30px -10px rgba(96, 165, 250, 0.3); }
+        .chart-card.selected { border-color: #60a5fa; background: #0f172a; }
+        .chart-card.disabled { opacity: 0.5; pointer-events: none; filter: grayscale(100%); }
+
+        /* Feedback Modal Animation */
+        #feedback-modal { transition: opacity 0.3s; }
+        #feedback-content { transform: scale(0.95); transition: transform 0.3s; }
+        #feedback-modal.show #feedback-content { transform: scale(1); }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden">
+
+    <!-- HEADER -->
+    <div class="h-16 bg-slate-900 border-b border-slate-700 flex items-center justify-between px-6 shadow-2xl z-20">
+        <div class="flex items-center gap-3">
+            <div class="w-9 h-9 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center shadow-lg">
+                <i class="fa-solid fa-brain text-white text-lg"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-sm tracking-wider">DATA DOCTOR <span class="text-blue-400">DEEP</span></h1>
+                <p class="text-[10px] text-slate-400 font-code">SIMULATION_V3.0</p>
+            </div>
+        </div>
+        <div class="flex gap-6 text-xs font-bold tracking-widest">
+            <div class="px-3 py-1 bg-slate-800 rounded border border-slate-700">LEVEL: <span id="level-indicator" class="text-blue-400">0/6</span></div>
+            <div class="px-3 py-1 bg-slate-800 rounded border border-slate-700">XP: <span id="xp-indicator" class="text-yellow-400">0</span></div>
+        </div>
+    </div>
+    <div class="w-full bg-slate-900 h-1.5"><div id="progress-bar" class="bg-gradient-to-r from-blue-500 to-indigo-500 h-full transition-all duration-700 ease-out" style="width: 0%"></div></div>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 overflow-y-auto relative p-4 md:p-8 flex justify-center scroll-smooth">
+
+        <!-- INTRO -->
+        <div id="stage-0" class="stage active max-w-3xl text-center mt-8">
+            <div class="inline-block p-8 rounded-full bg-slate-800/50 border border-slate-700 mb-8 backdrop-blur-sm relative">
+                <div class="absolute inset-0 bg-blue-500/10 rounded-full animate-pulse"></div>
+                <i class="fa-solid fa-user-graduate text-6xl text-blue-400 relative z-10"></i>
+            </div>
+            <h1 class="text-5xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-blue-200 to-indigo-200">KHOÁ HUẤN LUYỆN THỰC CHIẾN</h1>
+            <p class="text-slate-400 text-lg mb-10 leading-relaxed max-w-2xl mx-auto">
+                Chào mừng đến với phòng giả lập. Tại đây, bạn không chỉ "đoán mò".<br>
+                Bạn sẽ phải áp dụng <strong class="text-blue-300">Khoa học Thần kinh</strong>, <strong class="text-blue-300">Tâm lý học Gestalt</strong> và <strong class="text-blue-300">Đạo đức Dữ liệu</strong> để giải quyết các bài toán doanh nghiệp hóc búa.
+            </p>
+            <button onclick="nextStage()" class="group relative px-8 py-4 bg-blue-600 rounded-full font-bold text-white overflow-hidden shadow-lg transition hover:bg-blue-500">
+                <span class="relative z-10 flex items-center gap-2">BẮT ĐẦU HUẤN LUYỆN <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition"></i></span>
+            </button>
+        </div>
+
+        <!-- LEVEL 1: COGNITIVE LOAD -->
+        <div id="stage-1" class="stage w-full max-w-5xl">
+            <div class="flex justify-between items-end mb-6 border-b border-slate-700 pb-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-blue-400">LEVEL 1: TẢI NHẬN THỨC (COGNITIVE LOAD)</h2>
+                    <p class="text-slate-400 text-sm mt-1">Nguyên lý: "Mọi yếu tố thừa thãi đều lấy đi năng lượng xử lý của não bộ (System 2)."</p>
+                </div>
+                <div class="text-xs font-code bg-slate-800 px-2 py-1 rounded">GOAL: REDUCE CLUTTER</div>
+            </div>
+            
+            <p class="text-xl text-center mb-8">Hãy chọn Dashboard tối ưu nhất cho não bộ:</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Bad Option -->
+                <div onclick="checkL1(false)" class="chart-card group bg-slate-900 border-red-900/30 hover:border-red-500/50">
+                    <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/graphy.png')] opacity-10"></div>
+                    <div class="relative z-10 flex flex-col items-center h-64 justify-center">
+                        <div class="w-32 h-32 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 shadow-[5px_5px_0px_rgba(0,0,0,0.5)] transform -rotate-12 mb-4 border-4 border-white"></div>
+                        <p class="font-bold text-red-400">DASHBOARD A</p>
+                        <p class="text-xs text-slate-500 mt-2">Hiệu ứng 3D, Đổ bóng, Lưới đậm</p>
+                    </div>
+                </div>
+                
+                <!-- Good Option -->
+                <div onclick="checkL1(true)" class="chart-card group bg-slate-900 border-green-900/30 hover:border-green-500/50">
+                    <div class="relative z-10 flex flex-col items-center h-64 justify-center">
+                        <div class="flex items-end gap-3 h-32 mb-4 border-b border-slate-600 pb-1">
+                            <div class="w-8 bg-slate-600 h-16 rounded-t"></div>
+                            <div class="w-8 bg-blue-500 h-28 rounded-t shadow-[0_0_15px_rgba(59,130,246,0.3)]"></div>
+                            <div class="w-8 bg-slate-600 h-20 rounded-t"></div>
+                        </div>
+                        <p class="font-bold text-green-400">DASHBOARD B</p>
+                        <p class="text-xs text-slate-500 mt-2">Phẳng (Flat), Tối giản, Data-Ink Ratio cao</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- LEVEL 2: TOOLKIT (Updated) -->
+        <div id="stage-2" class="stage w-full max-w-4xl">
+            <div class="flex justify-between items-end mb-6 border-b border-slate-700 pb-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-blue-400">LEVEL 2: KHO VŨ KHÍ (TOOLKIT)</h2>
+                    <p class="text-slate-400 text-sm mt-1">Nguyên lý: "Chọn biểu đồ sai cũng như dùng búa để vặn ốc."</p>
+                </div>
+                <div class="text-xs font-code bg-slate-800 px-2 py-1 rounded">CASES: 3</div>
+            </div>
+
+            <!-- Case 1 -->
+            <div id="l2-c1" class="mb-12">
+                <div class="bg-slate-800 p-4 rounded border-l-4 border-yellow-500 mb-6 shadow-md">
+                    <p class="text-xs font-bold text-yellow-500 mb-1 uppercase tracking-wider">Tình huống 1: So sánh Danh mục</p>
+                    <p class="text-lg font-serif italic">"Tôi muốn so sánh doanh thu của 12 nhân viên sales. Tên họ khá dài (VD: Nguyễn Trần Khánh Vân)."</p>
+                </div>
+                <div class="grid grid-cols-3 gap-4">
+                    <button onclick="checkL2(1, 'pie')" class="l2-btn-1 chart-card flex-col gap-2">
+                        <i class="fa-solid fa-chart-pie text-3xl"></i> Pie Chart
+                    </button>
+                    <button onclick="checkL2(1, 'vbar')" class="l2-btn-1 chart-card flex-col gap-2">
+                        <i class="fa-solid fa-chart-column text-3xl"></i> Vertical Bar
+                    </button>
+                    <button onclick="checkL2(1, 'hbar')" class="l2-btn-1 chart-card flex-col gap-2">
+                        <i class="fa-solid fa-bars text-3xl"></i> Horizontal Bar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Case 2 -->
+            <div id="l2-c2" class="hidden mb-12">
+                <div class="bg-slate-800 p-4 rounded border-l-4 border-purple-500 mb-6 shadow-md">
+                    <p class="text-xs font-bold text-purple-500 mb-1 uppercase tracking-wider">Tình huống 2: Tương quan</p>
+                    <p class="text-lg font-serif italic">"Liệu chi tiêu Quảng cáo càng cao thì Doanh số càng lớn không? Có mối liên hệ nào không?"</p>
+                </div>
+                <div class="grid grid-cols-3 gap-4">
+                    <button onclick="checkL2(2, 'line')" class="l2-btn-2 chart-card flex-col gap-2">
+                        <i class="fa-solid fa-chart-line text-3xl"></i> Line Chart
+                    </button>
+                    <button onclick="checkL2(2, 'scatter')" class="l2-btn-2 chart-card flex-col gap-2">
+                        <i class="fa-solid fa-braille text-3xl"></i> Scatterplot
+                    </button>
+                    <button onclick="checkL2(2, 'bar')" class="l2-btn-2 chart-card flex-col gap-2">
+                        <i class="fa-solid fa-chart-simple text-3xl"></i> Bar Chart
+                    </button>
+                </div>
+            </div>
+
+            <!-- Case 3 (New) -->
+            <div id="l2-c3" class="hidden mb-12">
+                <div class="bg-slate-800 p-4 rounded border-l-4 border-red-500 mb-6 shadow-md">
+                    <p class="text-xs font-bold text-red-500 mb-1 uppercase tracking-wider">Tình huống 3: Tỷ trọng (Part-to-whole)</p>
+                    <p class="text-lg font-serif italic">"Tôi muốn so sánh thị phần của 5 đối thủ. Tôi cần biết chính xác ai hơn ai, dù chỉ chênh lệch 1%."</p>
+                </div>
+                <div class="grid grid-cols-3 gap-4">
+                    <button onclick="checkL2(3, 'pie')" class="l2-btn-3 chart-card flex-col gap-2 border-red-500/30">
+                        <i class="fa-solid fa-chart-pie text-3xl"></i> Pie Chart
+                    </button>
+                    <button onclick="checkL2(3, 'bar')" class="l2-btn-3 chart-card flex-col gap-2">
+                        <i class="fa-solid fa-chart-bar text-3xl"></i> Bar Chart
+                    </button>
+                    <button onclick="checkL2(3, 'donut')" class="l2-btn-3 chart-card flex-col gap-2 border-red-500/30">
+                        <i class="fa-regular fa-circle text-3xl"></i> Donut Chart
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- LEVEL 3: DECLUTTERING -->
+        <div id="stage-3" class="stage w-full max-w-6xl">
+            <div class="flex justify-between items-end mb-6 border-b border-slate-700 pb-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-blue-400">LEVEL 3: PHẪU THUẬT (GESTALT)</h2>
+                    <p class="text-slate-400 text-sm mt-1">Nguyên lý: "Closure (Đóng kín) và Proximity (Gần gũi). Bớt đi để thấy rõ hơn."</p>
+                </div>
+                <div class="text-xs font-code bg-slate-800 px-2 py-1 rounded">STEPS: 4</div>
+            </div>
+
+            <div class="flex flex-col lg:flex-row gap-8">
+                <div class="flex-1 bg-white p-6 rounded-xl shadow-2xl relative transition-all duration-500">
+                    <canvas id="declutterCanvas"></canvas>
+                    <!-- Visual Noise Overlay -->
+                    <div id="noise-border" class="absolute inset-0 border-[12px] border-slate-400/50 pointer-events-none transition-opacity duration-500"></div>
+                </div>
+                
+                <div class="w-full lg:w-80 space-y-4">
+                    <div class="bg-slate-800 p-4 rounded mb-4">
+                        <p class="text-xs text-slate-400 uppercase font-bold mb-2">Checklist Dọn Rác:</p>
+                        <div class="h-1 w-full bg-slate-700 rounded"><div id="l3-progress" class="h-1 bg-green-500 rounded transition-all duration-300" style="width: 0%"></div></div>
+                    </div>
+
+                    <button onclick="updateChartStep('border')" id="btn-border" class="w-full p-4 bg-slate-700 rounded hover:bg-slate-600 border border-slate-600 flex items-center justify-between group transition">
+                        <div class="text-left">
+                            <span class="block font-bold group-hover:text-blue-300">1. Xóa Viền (Border)</span>
+                            <span class="text-xs text-slate-400">Gestalt: Closure</span>
+                        </div>
+                        <i class="fa-regular fa-square"></i>
+                    </button>
+
+                    <button onclick="updateChartStep('grid')" id="btn-grid" class="w-full p-4 bg-slate-700 rounded hover:bg-slate-600 border border-slate-600 flex items-center justify-between group transition">
+                        <div class="text-left">
+                            <span class="block font-bold group-hover:text-blue-300">2. Xóa Lưới (Grid)</span>
+                            <span class="text-xs text-slate-400">Tăng Data-Ink Ratio</span>
+                        </div>
+                        <i class="fa-solid fa-border-all"></i>
+                    </button>
+
+                    <button onclick="updateChartStep('legend')" id="btn-legend" class="w-full p-4 bg-slate-700 rounded hover:bg-slate-600 border border-slate-600 flex items-center justify-between group transition">
+                        <div class="text-left">
+                            <span class="block font-bold group-hover:text-blue-300">3. Xóa Legend</span>
+                            <span class="text-xs text-slate-400">Gestalt: Proximity</span>
+                        </div>
+                        <i class="fa-solid fa-tag"></i>
+                    </button>
+
+                    <button onclick="updateChartStep('color')" id="btn-color" class="w-full p-4 bg-slate-700 rounded hover:bg-slate-600 border border-slate-600 flex items-center justify-between group transition">
+                        <div class="text-left">
+                            <span class="block font-bold group-hover:text-blue-300">4. Xám Hóa (De-emphasize)</span>
+                            <span class="text-xs text-slate-400">Preattentive: Color</span>
+                        </div>
+                        <i class="fa-solid fa-palette"></i>
+                    </button>
+                    
+                    <button id="btn-l3-next" onclick="nextStage()" class="hidden w-full py-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold rounded shadow-lg animate-bounce">
+                        HOÀN THÀNH PHẪU THUẬT <i class="fa-solid fa-arrow-right ml-2"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- LEVEL 4: FOCUS (Updated with Round 2) -->
+        <div id="stage-4" class="stage w-full max-w-4xl text-center">
+            <div class="flex justify-between items-end mb-6 border-b border-slate-700 pb-4 text-left">
+                <div>
+                    <h2 class="text-2xl font-bold text-blue-400">LEVEL 4: TIÊU ĐIỂM (PREATTENTIVE)</h2>
+                    <p class="text-slate-400 text-sm mt-1">Nguyên lý: "Hướng mắt người xem trong < 500ms."</p>
+                </div>
+            </div>
+
+            <!-- Round 1: Color -->
+            <div id="l4-r1">
+                <p class="text-xl mb-8 font-serif italic">"Doanh thu <strong>Tháng 4</strong> sụt giảm. Hãy dùng <strong>Màu Sắc</strong> để cảnh báo."</p>
+                <div class="inline-block bg-white p-8 rounded-lg shadow-2xl">
+                    <div class="flex items-end gap-4 h-64 border-b-2 border-slate-800 pb-1">
+                        <!-- Bars -->
+                        <div onclick="checkL4(false, this, 1)" class="w-12 bg-gray-300 h-[80%] hover:bg-gray-400 cursor-pointer rounded-t relative group"><span class="absolute -bottom-6 left-1/2 -translate-x-1/2 text-black text-xs font-bold">Jan</span></div>
+                        <div onclick="checkL4(false, this, 1)" class="w-12 bg-gray-300 h-[85%] hover:bg-gray-400 cursor-pointer rounded-t relative group"><span class="absolute -bottom-6 left-1/2 -translate-x-1/2 text-black text-xs font-bold">Feb</span></div>
+                        <div onclick="checkL4(false, this, 1)" class="w-12 bg-gray-300 h-[90%] hover:bg-gray-400 cursor-pointer rounded-t relative group"><span class="absolute -bottom-6 left-1/2 -translate-x-1/2 text-black text-xs font-bold">Mar</span></div>
+                        <div onclick="checkL4(true, this, 1)" class="w-12 bg-gray-300 h-[30%] hover:bg-red-500 cursor-pointer rounded-t relative group transition-colors duration-300"><span class="absolute -bottom-6 left-1/2 -translate-x-1/2 text-black text-xs font-bold">Apr</span></div>
+                        <div onclick="checkL4(false, this, 1)" class="w-12 bg-gray-300 h-[50%] hover:bg-gray-400 cursor-pointer rounded-t relative group"><span class="absolute -bottom-6 left-1/2 -translate-x-1/2 text-black text-xs font-bold">May</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Round 2: Position (New) -->
+            <div id="l4-r2" class="hidden">
+                 <p class="text-xl mb-8 font-serif italic">"Tôi muốn biết Top 3 nhân viên xuất sắc nhất. Hãy dùng <strong>Vị Trí (Sắp xếp)</strong> để làm nổi bật."</p>
+                 <div class="flex justify-center gap-8">
+                     <div onclick="checkL4(false, this, 2)" class="bg-white p-4 rounded w-48 opacity-70 hover:opacity-100 cursor-pointer border-2 border-transparent hover:border-red-500 transition">
+                         <p class="text-black text-xs font-bold mb-2">A. Sắp xếp Alpha (A-Z)</p>
+                         <div class="space-y-1">
+                             <div class="h-2 bg-gray-400 w-[60%]"></div>
+                             <div class="h-2 bg-gray-400 w-[90%]"></div> <!-- Winner buried -->
+                             <div class="h-2 bg-gray-400 w-[40%]"></div>
+                         </div>
+                     </div>
+                     <div onclick="checkL4(true, this, 2)" class="bg-white p-4 rounded w-48 hover:scale-105 cursor-pointer border-2 border-transparent hover:border-green-500 transition shadow-lg">
+                         <p class="text-black text-xs font-bold mb-2">B. Sắp xếp Giảm dần</p>
+                         <div class="space-y-1">
+                             <div class="h-2 bg-blue-600 w-[90%]"></div> <!-- Winner top -->
+                             <div class="h-2 bg-gray-400 w-[60%]"></div>
+                             <div class="h-2 bg-gray-400 w-[40%]"></div>
+                         </div>
+                     </div>
+                 </div>
+            </div>
+        </div>
+
+        <!-- LEVEL 5: NARRATIVE -->
+        <div id="stage-5" class="stage w-full max-w-5xl">
+            <div class="flex justify-between items-end mb-6 border-b border-slate-700 pb-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-blue-400">LEVEL 5: CẤU TRÚC CÂU CHUYỆN</h2>
+                    <p class="text-slate-400 text-sm mt-1">Nguyên lý: "Data không kể chuyện. Con người kể chuyện."</p>
+                </div>
+            </div>
+
+            <p class="text-center mb-8 text-lg">Kéo và thả (hoặc click chọn) các thẻ vào đúng vị trí trong <strong>Narrative Arc</strong>.</p>
+
+            <div class="grid grid-cols-3 gap-6 mb-8">
+                <!-- Slot 1 -->
+                <div class="bg-slate-800/50 p-6 rounded-xl border border-slate-600 flex flex-col items-center">
+                    <div class="text-xs font-bold text-slate-500 mb-2 uppercase tracking-widest">1. Bối cảnh (Setup)</div>
+                    <div id="slot-1" class="w-full flex-1 border-2 border-dashed border-slate-600 rounded-lg flex items-center justify-center p-4 text-center text-sm text-slate-500 min-h-[120px]">
+                        Thực trạng bình thường?
+                    </div>
+                </div>
+                <!-- Slot 2 -->
+                <div class="bg-slate-800/50 p-6 rounded-xl border border-slate-600 flex flex-col items-center">
+                    <div class="text-xs font-bold text-slate-500 mb-2 uppercase tracking-widest">2. Xung đột (Conflict)</div>
+                    <div id="slot-2" class="w-full flex-1 border-2 border-dashed border-slate-600 rounded-lg flex items-center justify-center p-4 text-center text-sm text-slate-500 min-h-[120px]">
+                        Điều gì đã thay đổi/sai lệch?
+                    </div>
+                </div>
+                <!-- Slot 3 -->
+                <div class="bg-slate-800/50 p-6 rounded-xl border border-slate-600 flex flex-col items-center">
+                    <div class="text-xs font-bold text-slate-500 mb-2 uppercase tracking-widest">3. Giải quyết (Resolution)</div>
+                    <div id="slot-3" class="w-full flex-1 border-2 border-dashed border-slate-600 rounded-lg flex items-center justify-center p-4 text-center text-sm text-slate-500 min-h-[120px]">
+                        Hành động là gì?
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <button onclick="fillSlot('B')" class="p-4 bg-slate-700 hover:bg-slate-600 rounded border border-slate-500 text-sm text-left shadow-lg">
+                    <strong>Thẻ B:</strong> "Cần cắt giảm ngay 20% chi phí vận hành kho bãi để bù lỗ."
+                </button>
+                <button onclick="fillSlot('A')" class="p-4 bg-slate-700 hover:bg-slate-600 rounded border border-slate-500 text-sm text-left shadow-lg">
+                    <strong>Thẻ A:</strong> "Chi phí Logistics tăng đột biến 40% do giá xăng dầu leo thang tháng trước."
+                </button>
+                <button onclick="fillSlot('C')" class="p-4 bg-slate-700 hover:bg-slate-600 rounded border border-slate-500 text-sm text-left shadow-lg">
+                    <strong>Thẻ C:</strong> "Trong 2 năm qua, biên lợi nhuận của chúng ta luôn duy trì ở mức 15%."
+                </button>
+            </div>
+            
+            <div class="mt-8 flex justify-center gap-4">
+                <button onclick="resetL5()" class="text-slate-400 hover:text-white underline">Reset</button>
+                <button onclick="checkL5()" class="bg-blue-600 px-8 py-3 rounded-full font-bold shadow-lg hover:shadow-blue-500/50 transition">Kiểm Tra Cốt Truyện</button>
+            </div>
+        </div>
+
+        <!-- LEVEL 6: ETHICS -->
+        <div id="stage-6" class="stage w-full max-w-3xl text-center">
+            <h2 class="text-2xl font-bold text-blue-400 mb-2">LEVEL 6: ĐẠO ĐỨC (THE LIE FACTOR)</h2>
+            <p class="text-slate-400 mb-8">"Làm sao để nói dối bằng biểu đồ mà không thay đổi số liệu?"</p>
+            
+            <div class="flex justify-center gap-12 mb-10">
+                <!-- Chart A -->
+                <div class="bg-white p-6 rounded text-black w-64 shadow-xl border-4 border-transparent hover:border-red-500 transition cursor-pointer" onclick="checkL6('A')">
+                    <h4 class="font-bold text-sm mb-4">Biểu đồ A</h4>
+                    <div class="flex items-end gap-4 h-40 border-l border-b border-black pl-1 relative">
+                        <div class="absolute -left-8 bottom-0 flex flex-col justify-between h-full text-xs font-mono"><span>36%</span><span>34%</span></div>
+                        <div class="w-12 bg-gray-400 h-2"></div> <!-- 34 -->
+                        <div class="w-12 bg-blue-600 h-40 relative">
+                             <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white font-bold text-xs">A</div>
+                        </div> <!-- 36 -->
+                    </div>
+                    <p class="text-xs mt-4 text-slate-500">Trục Y bắt đầu từ 34%</p>
+                </div>
+                
+                <!-- Chart B -->
+                <div class="bg-white p-6 rounded text-black w-64 shadow-xl border-4 border-transparent hover:border-green-500 transition cursor-pointer" onclick="checkL6('B')">
+                    <h4 class="font-bold text-sm mb-4">Biểu đồ B</h4>
+                    <div class="flex items-end gap-4 h-40 border-l border-b border-black pl-1 relative">
+                        <div class="absolute -left-8 bottom-0 flex flex-col justify-between h-full text-xs font-mono"><span>40%</span><span>0%</span></div>
+                        <div class="w-12 bg-gray-400 h-[85%]"></div> <!-- 34 -->
+                        <div class="w-12 bg-blue-600 h-[90%] relative">
+                            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white font-bold text-xs">B</div>
+                        </div> <!-- 36 -->
+                    </div>
+                    <p class="text-xs mt-4 text-slate-500">Trục Y bắt đầu từ 0%</p>
+                </div>
+            </div>
+            
+            <p class="text-lg mb-4">Câu hỏi: Biểu đồ nào đang <strong>phóng đại sự thật</strong> (Lie Factor > 1)?</p>
+        </div>
+
+        <!-- FINAL -->
+        <div id="stage-final" class="stage w-full max-w-2xl text-center mt-12">
+            <div class="w-32 h-32 mx-auto bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center shadow-[0_0_60px_rgba(234,179,8,0.4)] mb-8 animate-bounce">
+                <i class="fa-solid fa-crown text-6xl text-white"></i>
+            </div>
+            <h1 class="text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 to-orange-200 mb-4">MASTER!</h1>
+            <p class="text-xl text-slate-300 mb-8">Bạn đã hoàn thành xuất sắc khoá huấn luyện.<br>Sẵn sàng áp dụng vào báo cáo thực tế.</p>
+            <div class="bg-slate-800 p-6 rounded-lg border border-slate-700 max-w-sm mx-auto">
+                <div class="flex justify-between text-sm text-slate-400 mb-2">
+                    <span>FINAL SCORE</span>
+                    <span>RANK</span>
+                </div>
+                <div class="flex justify-between items-end">
+                    <span class="text-4xl font-code font-bold text-yellow-400" id="final-xp">0</span>
+                    <span class="text-xl font-bold text-green-400">DATA STORYTELLER</span>
+                </div>
+            </div>
+            <button onclick="location.reload()" class="mt-12 text-slate-500 hover:text-white underline">Khởi động lại</button>
+        </div>
+
+    </main>
+
+    <!-- ADVANCED FEEDBACK MODAL -->
+    <div id="feedback-modal" class="fixed inset-0 hidden z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md opacity-0">
+        <div id="feedback-content" class="bg-slate-800 border border-slate-600 rounded-xl max-w-2xl w-full shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <!-- Header -->
+            <div id="fb-header" class="p-6 text-center border-b border-slate-700">
+                <div id="fb-icon" class="text-6xl mb-4"></div>
+                <h3 id="fb-title" class="text-3xl font-bold"></h3>
+            </div>
+            <!-- Body (Scrollable) -->
+            <div class="p-8 overflow-y-auto">
+                <div id="fb-theory" class="text-lg text-slate-300 leading-relaxed space-y-4"></div>
+                
+                <div class="mt-8 bg-slate-900 p-4 rounded border-l-4 border-blue-500">
+                    <p class="text-xs font-bold text-blue-400 uppercase mb-1">Takeaway (Bài học):</p>
+                    <p id="fb-takeaway" class="text-sm italic text-slate-400"></p>
+                </div>
+            </div>
+            <!-- Footer -->
+            <div class="p-4 border-t border-slate-700 bg-slate-900/50">
+                <button onclick="closeModal()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg transition">TIẾP TỤC</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentLevel = 0;
+        let xp = 0;
+        let chartInstance = null;
+        let l2Progress = 0;
+        let l3State = { border: true, grid: true, legend: true, color: true };
+        let l5Slots = [];
+
+        // UI HELPERS
+        function updateUI() {
+            document.getElementById('level-indicator').innerText = `${currentLevel}/6`;
+            document.getElementById('xp-indicator').innerText = xp;
+            document.getElementById('progress-bar').style.width = `${(currentLevel/6)*100}%`;
+        }
+
+        function nextStage() {
+            document.querySelectorAll('.stage').forEach(el => el.classList.remove('active'));
+            currentLevel++;
+            updateUI();
+            
+            const nextId = currentLevel > 6 ? 'stage-final' : `stage-${currentLevel}`;
+            
+            // Special Level Inits
+            if (currentLevel === 3) setTimeout(initChart, 300);
+            if (currentLevel > 6) document.getElementById('final-xp').innerText = xp;
+
+            setTimeout(() => {
+                document.getElementById(nextId).classList.add('active');
+            }, 100);
+        }
+
+        function showFeedback(isCorrect, title, theoryHtml, takeaway, points) {
+            const modal = document.getElementById('feedback-modal');
+            const icon = document.getElementById('fb-icon');
+            const tit = document.getElementById('fb-title');
+            
+            modal.classList.remove('hidden');
+            // Trigger animation
+            setTimeout(() => modal.classList.remove('opacity-0'), 10);
+            modal.classList.add('show');
+
+            if (isCorrect) {
+                icon.innerHTML = '<i class="fa-solid fa-check-circle text-green-500 animate-bounce"></i>';
+                tit.innerText = title; 
+                tit.className = "text-3xl font-bold text-green-400";
+                document.getElementById('fb-header').className = "p-6 text-center border-b border-slate-700 bg-green-900/20";
+                xp += points;
+            } else {
+                icon.innerHTML = '<i class="fa-solid fa-circle-xmark text-red-500 animate-pulse"></i>';
+                tit.innerText = title; 
+                tit.className = "text-3xl font-bold text-red-400";
+                document.getElementById('fb-header').className = "p-6 text-center border-b border-slate-700 bg-red-900/20";
+            }
+            
+            document.getElementById('fb-theory').innerHTML = theoryHtml;
+            document.getElementById('fb-takeaway').innerText = takeaway;
+            updateUI();
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('feedback-modal');
+            modal.classList.add('opacity-0');
+            modal.classList.remove('show');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+            
+            // Auto advance logic checks
+            const titleColor = document.getElementById('fb-title').className;
+            if (titleColor.includes('green') && currentLevel !== 3 && currentLevel !== 2 && currentLevel !== 4) { 
+                // Level 2, 3, 4 manage their own flow
+                nextStage(); 
+            }
+            // For multi-step levels, specific logic handles nextStage
+        }
+
+        // --- LEVEL 1: COGNITIVE LOAD ---
+        function checkL1(isCorrect) {
+            if (isCorrect) {
+                showFeedback(
+                    true, 
+                    "CHÍNH XÁC!", 
+                    `<p>Bạn đã chọn Dashboard phẳng (Flat). Đây là lựa chọn đúng vì nó tối ưu hóa <strong>Data-Ink Ratio</strong> (Tỷ lệ Mực/Dữ liệu).</p>
+                     <p class="mt-4">Ngược lại, Dashboard 3D vi phạm nguyên tắc vì não bộ phải tốn năng lượng (System 2) để giải mã chiều sâu giả tạo trước khi hiểu con số.</p>`,
+                    "Luôn loại bỏ những thứ không mang lại thông tin (Non-data ink).",
+                    100
+                );
+            } else {
+                showFeedback(
+                    false, 
+                    "CẦN CÂN NHẮC", 
+                    `<p>Biểu đồ 3D và đổ bóng trông có vẻ "ngầu", nhưng chúng là kẻ thù của sự rõ ràng.</p>
+                     <p class="mt-4"><strong>Cognitive Load Theory:</strong> Đừng bắt não người xem phải làm việc vất vả để lọc nhiễu.</p>`,
+                    "Hãy chọn cái đơn giản hơn.",
+                    0
+                );
+            }
+        }
+
+        // --- LEVEL 2: TOOLKIT ---
+        function checkL2(caseNum, type) {
+            let theory = "";
+            let takeaway = "";
+            let correct = false;
+
+            if (caseNum === 1) { // Nominal Comparison
+                if (type === 'hbar') {
+                    correct = true;
+                    theory = `<p><strong>Tại sao Horizontal Bar?</strong></p>
+                              <p>Mắt người đọc tự nhiên từ trái sang phải (F-Pattern). Khi tên danh mục dài, biểu đồ cột đứng (Vertical) buộc chữ phải nghiêng hoặc xoay dọc, gây mỏi cổ (Hội chứng đau cổ).</p>`;
+                    takeaway = "Nếu nhãn tên dài -> Dùng thanh ngang.";
+                } else {
+                    theory = "Pie Chart không thể hiển thị 12 mục. Cột đứng sẽ làm chữ bị chồng chéo."; takeaway = "Thử lại với thanh ngang.";
+                }
+            } else if (caseNum === 2) { // Correlation
+                if (type === 'scatter') {
+                    correct = true;
+                    theory = `<p><strong>Tại sao Scatterplot?</strong></p>
+                              <p>Đây là biểu đồ duy nhất hiển thị mối quan hệ giữa 2 biến số trên trục X và Y. Nó giúp phát hiện ngay lập tức các điểm ngoại lai (Outliers).</p>`;
+                    takeaway = "Tương quan = Scatterplot.";
+                } else { theory = "Line chart dùng cho thời gian. Bar chart dùng cho so sánh."; takeaway = "Tìm biểu đồ dạng chấm."; }
+            } else if (caseNum === 3) { // Part-to-whole
+                if (type === 'bar') {
+                    correct = true;
+                    theory = `<p><strong>Tại sao không dùng Pie Chart?</strong></p>
+                              <p>Mắt người rất tệ trong việc so sánh diện tích và góc. Sự chênh lệch 1% gần như vô hình trên Pie Chart, nhưng rất rõ ràng trên Bar Chart (so sánh độ dài).</p>`;
+                    takeaway = "Muốn so sánh chính xác -> Dùng Bar Chart, kể cả cho tỷ trọng.";
+                } else { theory = "Pie và Donut đều dựa trên so sánh góc/diện tích, rất khó để thấy sự khác biệt nhỏ."; takeaway = "Hãy dùng độ dài (Bar)."; }
+            }
+
+            if (correct) {
+                showFeedback(true, "LỰA CHỌN TỐI ƯU", theory, takeaway, 50);
+                l2Progress++;
+                const div = document.getElementById(`l2-c${caseNum}`);
+                div.classList.add('opacity-50', 'pointer-events-none');
+                
+                // Reveal next case
+                if (caseNum < 3) document.getElementById(`l2-c${caseNum+1}`).classList.remove('hidden');
+                else setTimeout(nextStage, 500); // Done all cases
+            } else {
+                showFeedback(false, "CHƯA TỐI ƯU", theory, takeaway, 0);
+            }
+        }
+
+        // --- LEVEL 3: DECLUTTERING ---
+        function initChart() {
+            const ctx = document.getElementById('declutterCanvas').getContext('2d');
+            chartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: { labels: ['Q1', 'Q2', 'Q3', 'Q4'], datasets: [{ label: 'Sales', data: [120, 190, 30, 250], backgroundColor: ['#ef4444', '#22c55e', '#3b82f6', '#eab308'] }] },
+                options: { plugins: { legend: {display: true} }, scales: { x: {grid:{color:'black', lineWidth:2}, border:{width:4}}, y: {grid:{color:'black', lineWidth:2}, border:{width:4}} } }
+            });
+        }
+        function updateChartStep(step) {
+            const btn = document.getElementById(`btn-${step}`);
+            btn.classList.add('opacity-50', 'pointer-events-none', 'bg-green-900/30');
+            btn.querySelector('i').className = "fa-solid fa-check text-green-500";
+            
+            // Apply logic (same as before)
+            if (step === 'border') { document.getElementById('noise-border').style.display='none'; chartInstance.options.scales.x.border.display=false; chartInstance.options.scales.y.border.display=false; l3State.border=false; }
+            if (step === 'grid') { chartInstance.options.scales.x.grid.display=false; chartInstance.options.scales.y.grid.display=false; l3State.grid=false; }
+            if (step === 'legend') { chartInstance.options.plugins.legend.display=false; l3State.legend=false; }
+            if (step === 'color') { chartInstance.data.datasets[0].backgroundColor=['#cbd5e1','#cbd5e1','#cbd5e1','#3b82f6']; l3State.color=false; }
+            chartInstance.update();
+
+            // Progress bar
+            const done = 4 - Object.values(l3State).filter(Boolean).length;
+            document.getElementById('l3-progress').style.width = `${done*25}%`;
+
+            if (done === 4) {
+                document.getElementById('btn-l3-next').classList.remove('hidden');
+                addScore(100);
+            }
+        }
+        function addScore(p) { xp += p; updateUI(); }
+
+        // --- LEVEL 4: FOCUS ---
+        let l4Round = 1;
+        function checkL4(isCorrect, el, round) {
+            if (isCorrect) {
+                let theory = "";
+                if (round === 1) { // Color
+                    el.classList.add('bg-red-500');
+                    theory = `<p><strong>Thuộc tính Tiền chú ý (Preattentive Attribute): MÀU SẮC</strong></p>
+                              <p>Màu sắc là tín hiệu mạnh nhất. Khi một cột có màu khác biệt (đỏ/cam), não bộ sẽ tự động xử lý nó trong < 200ms mà không cần ý thức.</p>`;
+                    showFeedback(true, "TIÊU ĐIỂM CHUẨN", theory, "Dùng màu sắc chiến lược để dẫn dắt mắt.", 50);
+                    // Setup Round 2
+                    setTimeout(() => {
+                        document.getElementById('l4-r1').classList.add('hidden');
+                        document.getElementById('l4-r2').classList.remove('hidden');
+                        l4Round = 2;
+                    }, 500);
+                } else { // Position
+                    theory = `<p><strong>Thuộc tính Tiền chú ý: VỊ TRÍ</strong></p>
+                              <p>Sắp xếp dữ liệu theo thứ tự (giảm dần) giúp người xem ngay lập tức thấy ai đứng nhất, ai đứng nhì mà không cần so sánh độ cao từng cột.</p>`;
+                    showFeedback(true, "SẮP XẾP HỢP LÝ", theory, "Đừng bắt người xem phải tự sắp xếp trong đầu.", 50);
+                    setTimeout(nextStage, 500);
+                }
+            } else {
+                showFeedback(false, "SAI VỊ TRÍ", "Hãy đọc kỹ yêu cầu và thử lại.", "Tập trung vào điểm dị biệt.", 0);
+            }
+        }
+
+        // --- LEVEL 5: NARRATIVE ---
+        function fillSlot(card) {
+            // Simple filling logic
+            const slots = [1,2,3];
+            for (let s of slots) {
+                if (!l5Slots[s-1]) {
+                    l5Slots[s-1] = card;
+                    const txt = card==='C' ? "1. Bối cảnh (Thành công)" : (card==='A' ? "2. Xung đột (Sự cố)" : "3. Giải quyết (Hành động)");
+                    const el = document.getElementById(`slot-${s}`);
+                    el.innerHTML = `<span class="text-blue-400 font-bold">${txt}</span>`;
+                    el.classList.add('border-blue-500', 'bg-slate-700');
+                    break;
+                }
+            }
+        }
+        function checkL5() {
+            if (JSON.stringify(l5Slots) === JSON.stringify(['C','A','B'])) {
+                showFeedback(
+                    true, "LOGIC HOÀN HẢO", 
+                    `<p><strong>Narrative Arc (Cung kể chuyện):</strong></p>
+                     <ul class="list-disc pl-5 mt-2 space-y-2">
+                        <li><strong>Setup (C):</strong> Thiết lập trạng thái bình thường ("Chúng ta đang ổn").</li>
+                        <li><strong>Conflict (A):</strong> Biến cố xảy ra phá vỡ sự bình yên ("Biến động giá xăng").</li>
+                        <li><strong>Resolution (B):</strong> Giải pháp để lập lại trật tự mới ("Cắt giảm chi phí").</li>
+                     </ul>`,
+                    "Không có xung đột, không có câu chuyện.", 100
+                );
+            } else {
+                showFeedback(false, "CHƯA HỢP LÝ", "Hãy thử lại: Bắt đầu bằng cái bình thường -> Gặp vấn đề -> Giải quyết vấn đề.", "Sai trật tự.", 0);
+                resetL5();
+            }
+        }
+        function resetL5() {
+            l5Slots = [];
+            [1,2,3].forEach(i => {
+                const el = document.getElementById(`slot-${i}`);
+                el.innerText = `Slot ${i}`;
+                el.classList.remove('border-blue-500', 'bg-slate-700');
+            });
+        }
+
+        // --- LEVEL 6: ETHICS ---
+        function checkL6(type) {
+            if (type === 'A') {
+                showFeedback(
+                    true, "PHÁT HIỆN GIAN LẬN",
+                    `<p><strong>Lỗi: Truncated Y-Axis (Cắt trục Y)</strong></p>
+                     <p>Biểu đồ A bắt đầu từ 34%, khiến sự chênh lệch 2% (34 vs 36) trông như gấp đôi. Đây là "Lie Factor" cao.</p>
+                     <p>Biểu đồ B bắt đầu từ 0%, hiển thị sự thật là chênh lệch không đáng kể.</p>`,
+                    "Với Bar Chart, trục Y PHẢI LUÔN bắt đầu từ 0.", 100
+                );
+            } else {
+                showFeedback(
+                    false, "KHÔNG CHÍNH XÁC",
+                    "Biểu đồ B bắt đầu từ 0, đây là cách biểu diễn trung thực. Hãy nhìn Biểu đồ A, nó đang cố tình phóng đại sự thật.",
+                    "Kiểm tra gốc trục Y.", 0
+                );
+            }
+        }
+    </script>
+</body>
+</html>
